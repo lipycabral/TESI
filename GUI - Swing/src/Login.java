@@ -1,5 +1,7 @@
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -31,7 +33,6 @@ public class Login extends JFrame {
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setResizable(false);
 		this.setLayout(new BorderLayout());
-		this.setSize(300,100);
 		
 		p1.add(lbNome);
 		p1.add(lbSenha);
@@ -60,10 +61,16 @@ public class Login extends JFrame {
 		this.add(p2, BorderLayout.CENTER);
 		this.add(p3, BorderLayout.SOUTH);
 		
-		this.setLocationRelativeTo(null);
-		this.setVisible(true);
+		this.pack();
+		//this.setLocationRelativeTo(null);
+		centralize();
+	}
+	public void centralize() {
+		Dimension dT = Toolkit.getDefaultToolkit().getScreenSize();
+		Dimension dJ = getSize();
+		setLocation((dT.width-dJ.width)/2, (dT.height-dJ.height)/2);
 	}
 	public static void main(String[] args) {
-		new Login();
+		new Login().setVisible(true);
 	}
 }
