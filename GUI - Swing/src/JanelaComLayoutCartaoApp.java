@@ -69,10 +69,10 @@ public class JanelaComLayoutCartaoApp extends JFrame {
 		
 		pBotoes = new JPanel(new GridLayout(1, 4));
 		
-		bPrimeiro = new JButton("Primeiro");
-		bAnterior = new JButton("Anterior");
-		bProximo = new JButton("Proximo");
-		bUltimo = new JButton("Último");
+		bPrimeiro = new JButton(actPrimeiro);
+		bAnterior = new JButton(actAnterior);
+		bProximo = new JButton(actProximo);
+		bUltimo = new JButton(actUltimo);
 		
 		pBotoes.add(bPrimeiro);
 		pBotoes.add(bAnterior);
