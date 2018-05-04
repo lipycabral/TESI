@@ -1,5 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+
 import javax.swing.*;
 
 public class CadastroDeBolsistasComModelo extends JFrame {
@@ -32,7 +34,7 @@ public class CadastroDeBolsistasComModelo extends JFrame {
 	public CadastroDeBolsistasComModelo() {
 		
 		setTitle("Cadastro de Bolsistas");
-		setSize(620, 320);
+		setSize(800, 600);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setLocationRelativeTo(null); // SOMENTE A PARTIR JDK 1.4
 		setResizable(false);
@@ -40,7 +42,7 @@ public class CadastroDeBolsistasComModelo extends JFrame {
 		tmBolsistas = new BolsistaTableModel();
 		
 		tblBolsistas = new JTable(tmBolsistas);
-		tblBolsistas.addMouseListener(new HabilitarExcluir());
+		tblBolsistas.addMouseListener(new Habilitar());
 		tblBolsistas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		pnlControles = new JPanel(new BorderLayout());
@@ -103,15 +105,95 @@ public class CadastroDeBolsistasComModelo extends JFrame {
 		pnlControles.add(pnlCampos);
 		pnlControles.add(pnlBotoes, BorderLayout.SOUTH);
 		
-		fldMatricula = new JTextField(3);
-		fldNome = new JTextField(20);
-		btnSalvar = new JButton(actSalvar);
-		btnExcluir = new JButton(actExcluir);
+		
 		btnExcluir.setEnabled(false);
 		
 		
 		add(new JScrollPane(tblBolsistas));
 		add(pnlControles, BorderLayout.SOUTH);
+		
+	}
+	
+	public void limparCampos() {
+		fldMatricula.setText("");
+		fldNome.setText("");
+		bgSexo.clearSelection();
+		chkPasse.setSelected(false);
+		chkAlimentacao.setSelected(false);
+		chkCreche.setSelected(false);
+		chkPibic.setSelected(false);
+		chkPivic.setSelected(false);
+		chkPibit.setSelected(false);
+		cmbCurso.setSelectedIndex(0);
+	}
+	private Bolsista DescarregarCampos() {
+		Bolsista bolsista;
+		
+		long matricula;
+		
+		String nome, sexo = null, auxilio, iniciacao, curso;
+		
+		ArrayList<String> lAuxilio, lIniciacao;
+		
+		matricula = Long.parseLong(fldMatricula.getText());
+		
+		nome = fldNome.getText();
+		
+		if(rbMasculino.isSelected()){
+	         sexo = "Masculino";
+		}
+		if(rbFeminino.isSelected()){
+		     sexo = "Feminino";
+		}
+		
+		lAuxilio = new ArrayList<String>();
+		if(chkPasse.isSelected())
+			lAuxilio.add(chkPasse.getText());
+		if(chkAlimentacao.isSelected())
+			lAuxilio.add(chkAlimentacao.getText());
+		if(chkCreche.isSelected())
+			lAuxilio.add(chkCreche.getText());
+		
+		auxilio = lAuxilio.toString();
+		auxilio = auxilio.substring(1, auxilio.length()-1);
+		
+		lIniciacao = new ArrayList<String>();
+		if(chkPibic.isSelected())
+			lIniciacao.add(chkPibic.getText());
+		if(chkPivic.isSelected())
+			lIniciacao.add(chkPivic.getText());
+		if(chkPibit.isSelected())
+			lIniciacao.add(chkPibit.getText());
+		
+		iniciacao = lIniciacao.toString();
+		iniciacao = iniciacao.substring(1, iniciacao.length()-1);
+		
+		curso = cmbCurso.getSelectedItem().toString();
+		
+		bolsista = new Bolsista(matricula, nome, sexo, auxilio, iniciacao, curso);
+		
+		return bolsista;
+	}
+	private void CarregarCampos(Bolsista bolsista) {
+		
+		fldMatricula.setText(bolsista.getMatricula()+"");
+		
+		fldNome.setText(bolsista.getNome());
+		
+		if(bolsista.getSexo().equals("Masculino")) 
+			rbMasculino.setSelected(true);
+		else
+			rbFeminino.setSelected(true);
+		
+		chkPasse.setSelected(bolsista.getAuxilio().contains(chkPasse.getText()));
+		chkAlimentacao.setSelected(bolsista.getAuxilio().contains(chkAlimentacao.getText()));
+		chkCreche.setSelected(bolsista.getAuxilio().contains(chkCreche.getText()));
+		chkPibic.setSelected(bolsista.getIniciacao().contains(chkPibic.getText()));
+		chkPibit.setSelected(bolsista.getIniciacao().contains(chkPibit.getText()));
+		chkPivic.setSelected(bolsista.getIniciacao().contains(chkPivic.getText()));
+		
+		cmbCurso.setSelectedItem(bolsista.getCurso());
+		
 		
 	}
 	
@@ -134,20 +216,27 @@ public class CadastroDeBolsistasComModelo extends JFrame {
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			Bolsista bolsista = DescarregarCampos();
+			if(status==INCLUINDO) {
+				tmBolsistas.addBolsista(bolsista);
+				JOptionPane.showMessageDialog(null, 
+						"Bolsista incluído com sucesso!", 
+						"Cadastro de Bolsistas", 
+						JOptionPane.INFORMATION_MESSAGE);
+			}
+			if(status==EDITANDO) {
+				tmBolsistas.updBolsista(bolsista, tblBolsistas.getSelectedRow());
+				JOptionPane.showMessageDialog(null, 
+						"Bolsista editado com sucesso!", 
+						"Cadastro de Bolsistas", 
+						JOptionPane.INFORMATION_MESSAGE);
+			}
 			
-			//Bolsista bolsista = new Bolsista(Integer.parseInt(fldMatricula.getText()), 
-				//	fldNome.getText());
-
-			//tmBolsistas.addBolsista(bolsista);
 			
-			JOptionPane.showMessageDialog(null, 
-					"Professor incluído com sucesso!", 
-					"Cadastro de Professores", 
-					JOptionPane.INFORMATION_MESSAGE);
-			
-			fldMatricula.setText("");
-			fldNome.setText("");
+			limparCampos();
 			fldMatricula.requestFocus();
+			status = INCLUINDO;
+			btnExcluir.setEnabled(false);
 		}
 		
 	}
@@ -172,9 +261,9 @@ public class CadastroDeBolsistasComModelo extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			
-			//tmBolsistas.delBolsista(tblBolsistas.getSelectedRow());
-			//btnExcluir.setEnabled(false);
-			
+			tmBolsistas.delBolsista(tblBolsistas.getSelectedRow());
+			btnExcluir.setEnabled(false);
+			limparCampos();
 			JOptionPane.showMessageDialog(null, 
 					"Bolsita excluído com sucesso!", 
 					"Cadastro de Bolsistas", 
@@ -184,10 +273,13 @@ public class CadastroDeBolsistasComModelo extends JFrame {
 		
 	}
 	
-	class HabilitarExcluir extends MouseAdapter {
+	class Habilitar extends MouseAdapter {
 	
 		public void mousePressed(MouseEvent e) {
 			if (tblBolsistas.getSelectedRow() >= 0) {
+				status = EDITANDO;
+				Bolsista bolsista = tmBolsistas.getBolsista(tblBolsistas.getSelectedRow());
+				CarregarCampos(bolsista);
 				btnExcluir.setEnabled(true);
 			}else {
 				btnExcluir.setEnabled(false);

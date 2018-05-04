@@ -1,25 +1,25 @@
 
 public class Bolsista {
-	private int matricula;
+	private long matricula;
 	private String nome;
 	private String sexo;
 	private String auxilio;
 	private String iniciacao;
 	private String curso;
 	
-	public Bolsista(int matricula, String nome, String sexo, String auxilio, String iniciacao, String curso) {
-		this.matricula = matricula;
-		this.nome = nome;
+	public Bolsista(long matricula, String nome, String sexo, String auxilio, String iniciacao, String curso) {
+		setMatricula(matricula);
+		setNome(nome);
 		this.sexo = sexo;
 		this.auxilio = auxilio;
 		this.iniciacao = iniciacao;
 		this.curso = curso;
 	}
 	
-	public int getMatricula() {
+	public long getMatricula() {
 		return matricula;
 	}
-	public void setMatricula(int matricula) {
+	public void setMatricula(long matricula) {
 		this.matricula = matricula;
 	}
 	public String getNome() {
