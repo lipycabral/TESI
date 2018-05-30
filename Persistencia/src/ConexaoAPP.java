@@ -65,6 +65,7 @@ public class ConexaoAPP {
 				strConsulta = entrada.nextLine();
 			}
 			cnx.desconecte();
+			entrada.close();
 		}
 	}
 }
