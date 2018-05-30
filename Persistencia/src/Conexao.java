@@ -1,5 +1,6 @@
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -7,6 +8,7 @@ public class Conexao {
 	
 	private Connection con = null;
 	private Statement snt = null;
+	private boolean conectado = false;
 	
 	public Conexao() {
 		
@@ -18,20 +20,50 @@ public class Conexao {
 		}
 		
 	}
-	public void conecte(String urlBanco, String userName, String userPasswd) {
-		try {
-			con = DriverManager.getConnection(urlBanco, userName, userPasswd);
-			System.out.println("Conexão efetuada com sucesso!");
-		} catch (SQLException sqle) {
-			System.out.printf("Erro # %d (%s)\n", sqle.getErrorCode(),sqle.getMessage());
+	public boolean conecte(String urlBanco, String userName, String userPasswd) {
+		if(conectado) {
+			System.out.println("Já está conectado!");
 		}
+		else {
+			try {
+				con = DriverManager.getConnection(urlBanco, userName, userPasswd);
+				snt = con.createStatement();
+				System.out.println("Conexão efetuada com sucesso!");
+				conectado = true;
+			} catch (SQLException sqle) {
+				System.out.printf("Erro # %d (%s)\n", sqle.getErrorCode(),sqle.getMessage());
+				conectado = false;
+			}
+		}
+		return conectado;
 	}
 	public void desconecte() {
-		try {
-			con.close();
-			System.out.println("Conexão encerrada com sucesso!");
-		} catch (SQLException sqle) {
-			System.out.printf("Erro # %d (%s)\n", sqle.getErrorCode(),sqle.getMessage());
+		if(!conectado) {
+			System.out.println("Já está desconectado!");
+		}
+		else {
+			try {
+				con.close();
+				System.out.println("Conexão encerrada com sucesso!");
+				conectado = false;
+			} catch (SQLException sqle) {
+				System.out.printf("Erro # %d (%s)\n", sqle.getErrorCode(),sqle.getMessage());
+			}
+		}
+	}
+	public ResultSet consulte(String sqlQuery) {
+		if(!conectado) {
+			System.out.println("Não está conectado!");
+			return null;
+		}
+		else {
+			try {
+				return snt.executeQuery(sqlQuery);
+			}
+			catch(SQLException sqle) {
+				System.out.printf("Erro # %d (%s)\n", sqle.getErrorCode(),sqle.getMessage());
+				return null;
+			}
 		}
 	}
 }
