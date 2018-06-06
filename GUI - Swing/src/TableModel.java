@@ -1,7 +1,7 @@
 import javax.swing.table.*;
 import java.util.*;
 
-public class ProfessorTableModel extends AbstractTableModel{
+public class TableModel extends AbstractTableModel{
 
 	/**
 	 * 

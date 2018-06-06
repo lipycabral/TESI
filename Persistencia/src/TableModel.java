@@ -33,18 +33,15 @@ public class TableModel extends AbstractTableModel{
 		return qtdColunas;	
 	}
 	@Override	
-	public Object getValueAt(int rowIndex, int columnIndex) {		
-		Bolsista bolsista = bolsistas.get(rowIndex);
-		switch(columnIndex) {
-		case 0 : return bolsista.getMatricula();
-		case 1 : return bolsista.getNome();
-		case 2 : return bolsista.getSexo();
-		case 3 : return bolsista.getAuxilio();
-		case 4 : return bolsista.getIniciacao();
-		case 5 : return bolsista.getCurso();
-		default : return null;
+	public Object getValueAt(int rowIndex, int columnIndex) {	
+		Object dado = null;
+		try {
+			rs.absolute(rowIndex+1);
+			dado = rs.getObject(columnIndex+1);
+		}catch(SQLException sqle) {
+			System.out.printf("Erro # %d (%s)\n", sqle.getErrorCode(),sqle.getMessage());
 		}
-
+		return dado;
 	}
 
 	@Override
@@ -60,8 +57,16 @@ public class TableModel extends AbstractTableModel{
 	
 	@Override
 	public Class<?> getColumnClass(int columnIndex) {
-
-		return getValueAt(0, columnIndex).getClass();
+		String nomeClasse;
+		try {
+			nomeClasse = rsmd.getColumnClassName(columnIndex+1);
+			return Class.forName(nomeClasse);
+		}catch(SQLException sqle) {
+			System.out.printf("Erro # %d (%s)\n", sqle.getErrorCode(),sqle.getMessage());
+		} catch (ClassNotFoundException e) {
+			System.out.printf("Classe não encontrada: %s", e.getMessage());
+		}
+		return null;
 	
 	}
 }

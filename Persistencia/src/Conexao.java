@@ -66,4 +66,18 @@ public class Conexao {
 			}
 		}
 	}
+	public int atualize(String sqlUpdate) {
+		if(!conectado) {
+			System.out.println("Não está conectado!");
+		}
+		else {
+			try {
+				return snt.executeUpdate(sqlUpdate);
+			}
+			catch(SQLException sqle) {
+				System.out.printf("Erro # %d (%s)\n", sqle.getErrorCode(),sqle.getMessage());
+			}
+		}
+		return -1;
+	}
 }

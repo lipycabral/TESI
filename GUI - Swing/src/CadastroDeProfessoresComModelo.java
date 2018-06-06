@@ -6,7 +6,7 @@ import javax.swing.table.DefaultTableModel;
 public class CadastroDeProfessoresComModelo extends JFrame {
 
 	private JTable tblProfessores;
-	private ProfessorTableModel tmProfessores;
+	private TableModel tmProfessores;
 
 	private JPanel pnlControles;
 	private JTextField fldMatricula, fldNome;
@@ -25,7 +25,7 @@ public class CadastroDeProfessoresComModelo extends JFrame {
 		setLocationRelativeTo(null); // SOMENTE A PARTIR JDK 1.4
 		//setResizable(false);
 
-		tmProfessores = new ProfessorTableModel();
+		tmProfessores = new TableModel();
 		
 		tblProfessores = new JTable(tmProfessores);
 		tblProfessores.addMouseListener(new HabilitarExcluir());
