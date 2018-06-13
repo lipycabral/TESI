@@ -18,15 +18,14 @@ class ProfessorConsulta extends JFrame {
 	JComboBox cmbChaves;
 	JTextField fldValor;
 	JButton btnBuscar, btnSair, btnIncluir, btnEditar, btnExcluir;
-	
+
 	AcaoBuscar actBuscar = new AcaoBuscar();
 	AcaoIncluir actIncluir = new AcaoIncluir();
 	AcaoEditar actEditar = new AcaoEditar();	
 	AcaoExcluir actExcluir = new AcaoExcluir();	
 	AcaoSair actSair = new AcaoSair();	
-	
+
 	static final String imagesPath = new String("images/");	
-		
 
 	ProfessorConsulta(Conexao conexao){ // método construtor
 		super("Consulta de Professor"); // chamando construtor da classe mãe
@@ -38,6 +37,8 @@ class ProfessorConsulta extends JFrame {
 		professorCadastro = new ProfessorCadastro(this, cnx);
 
 		tblQuery = new JTable(0,0);
+		tblQuery.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		tblQuery.addMouseListener(new HabilitarEdicaoExclusao());
 
 		pnlRotulos = new JPanel(new GridLayout(2,1,5,5));
 		pnlRotulos.add(new JLabel("Buscar por"));
@@ -45,20 +46,22 @@ class ProfessorConsulta extends JFrame {
 
 		cmbChaves = new JComboBox(new String[] {"Matrícula", "Nome"});
 		fldValor = new JTextField();
-		
+
 		pnlChaves = new JPanel(new GridLayout(2,1,5,5));
 		pnlChaves.add(cmbChaves);
 		pnlChaves.add(fldValor);
-		
+
 		pnlControles = new JPanel(new BorderLayout(5,5));
 		pnlControles.add(pnlRotulos, BorderLayout.WEST);
 		pnlControles.add(pnlChaves);
-		
+
 		btnBuscar = new JButton(actBuscar);
 		btnSair = new JButton(actSair);
 		btnIncluir = new JButton(actIncluir);
 		btnEditar = new JButton(actEditar);
+		btnEditar.setEnabled(false);
 		btnExcluir = new JButton(actExcluir);
+		btnExcluir.setEnabled(false);
 
 		pnlOperacoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		pnlOperacoes.add(btnIncluir);
@@ -77,7 +80,7 @@ class ProfessorConsulta extends JFrame {
 		add(new JScrollPane(tblQuery));
 		add(pnlOperacoes, BorderLayout.SOUTH);		
 
-   } //Fim do método construtor
+	} //Fim do método construtor
 
 	class AcaoBuscar extends AbstractAction{
 
@@ -88,15 +91,16 @@ class ProfessorConsulta extends JFrame {
 					"Buscar registro de professor!");
 			putValue(SMALL_ICON, 
 					new ImageIcon(imagesPath+"general/Search24.gif"));
-					
+
 		}
-		
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
+
 			buscar();
 
 		}
-		
+
 	}
 
 	class AcaoIncluir extends AbstractAction{
@@ -108,15 +112,16 @@ class ProfessorConsulta extends JFrame {
 					"Incluir registro de professor!");
 			putValue(SMALL_ICON, 
 					new ImageIcon(imagesPath+"general/New24.gif"));
-					
-		}
-		
-		@Override
-		public void actionPerformed(ActionEvent e) {
-		
 
 		}
-		
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+
+			professorCadastro.incluir();
+
+		}
+
 	}
 
 	class AcaoEditar extends AbstractAction{
@@ -128,17 +133,19 @@ class ProfessorConsulta extends JFrame {
 					"Editar registro de professor!");
 			putValue(SMALL_ICON, 
 					new ImageIcon(imagesPath+"general/Edit24.gif"));
-					
-		}
-		
-		@Override
-		public void actionPerformed(ActionEvent e) {
-		
 
 		}
-		
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			int matricula;
+			matricula = (int)tblQuery.getValueAt(tblQuery.getSelectedRow(), 0);
+			professorCadastro.editar(matricula);
+
+		}
+
 	}
-	
+
 	class AcaoExcluir extends AbstractAction{
 
 		AcaoExcluir(){
@@ -148,17 +155,17 @@ class ProfessorConsulta extends JFrame {
 					"Excluir registro de professor!");
 			putValue(SMALL_ICON, 
 					new ImageIcon(imagesPath+"general/Delete24.gif"));
-					
-		}
-		
-		@Override
-		public void actionPerformed(ActionEvent e) {
-		
 
 		}
-		
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+
+
+		}
+
 	}	
-	
+
 	class AcaoSair extends AbstractAction{
 
 		AcaoSair(){
@@ -168,32 +175,58 @@ class ProfessorConsulta extends JFrame {
 					"Sair da aplicação!");
 			putValue(SMALL_ICON, 
 					new ImageIcon(imagesPath+"general/Stop24.gif"));
-					
+
 		}
-		
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 
 			cnx.desconecte();
 			System.exit(0);
-			
+
 		}
-		
-	}
-	public void buscar() {
-		String strQuery = "select matricula as 'Matrícula', nome as 'Nome', rg as 'RG', cpf 'CPF' from professores ";
-		switch(cmbChaves.getSelectedIndex()) {
-		case 0:
-			strQuery += "where matricula = "+fldValor.getText()+";";
-			break;
-		case 1:
-			strQuery += "where nome like '%"+fldValor.getText()+"%';";
-			break;
-		}
-		
-		tblQuery.setModel(new SQLTableModel(cnx.consulte(strQuery)));
+
 	}
 
+	public void buscar() {
+
+		String strQuery = "SELECT matricula AS 'Matrícula', nome AS 'Nome', rg AS 'RG', cpf AS 'CPF',centro As 'Centro' FROM professores";
+
+		if(!fldValor.getText().equals("")) {
+
+			switch (cmbChaves.getSelectedIndex()) {
+			case 0:
+				strQuery = strQuery 
+				+ "WHERE matricula = " 
+				+ fldValor.getText() + ";";
+				break;
+			case 1:
+				strQuery = strQuery 
+				+ "WHERE nome LIKE '%" 
+				+ fldValor.getText() + "%';";			
+				break;
+			}
+
+		}
+
+		tblQuery.setModel(new SQLTableModel(cnx.consulte(strQuery)));
+		btnExcluir.setEnabled(false);
+		btnEditar.setEnabled(false);
+	}
+	class HabilitarEdicaoExclusao extends MouseAdapter {
+		
+		public void mousePressed(MouseEvent e) {
+			if (tblQuery.getSelectedRow() >= 0) {
+				btnEditar.setEnabled(true);
+				btnExcluir.setEnabled(true);
+			}else {
+				btnExcluir.setEnabled(false);
+				btnEditar.setEnabled(false);
+			}
+				
+		}
+		
+	}
 }//Fim da classe ProfessorConsulta
 
 

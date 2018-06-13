@@ -37,7 +37,7 @@ class ProfessorCadastro extends JFrame {
 		cnx = conexao;
 
 		pnlRotulos = new JPanel(new GridLayout(5,1,5,5));
-		pnlRotulos.add(new JLabel("Código"));
+		pnlRotulos.add(new JLabel("Matrícula"));
 		pnlRotulos.add(new JLabel("Nome"));
 		pnlRotulos.add(new JLabel("RG"));		
 		pnlRotulos.add(new JLabel("CPF"));
@@ -103,16 +103,44 @@ class ProfessorCadastro extends JFrame {
 			putValue(SHORT_DESCRIPTION, 
 					"Confirmar operação!");
 			putValue(SMALL_ICON, 
-					new ImageIcon(imagesPath+"general/Search24.gif"));
+					new ImageIcon(imagesPath+"general/Save24.gif"));
 
 		}
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
 
+			String strAtualize = "";
 
+			switch (acao) {
+			case INCLUSAO:
+				strAtualize = "INSERT INTO "
+						+ " professores (matricula, nome, rg, cpf, centro)"
+						+ " VALUES ("
+						+ fldMatricula.getText() + ", "
+						+ "'" + fldNome.getText() + "', "
+						+ fldRg.getText() + ", "
+						+ fldCpf.getText() + ", "
+						+ "'" + idCentros[cmbCentro.getSelectedIndex()] + "');";
+				break;
+			case EDICAO: 
+				strAtualize = "UPDATE professores "
+					+ "SET nome = '"+fldNome.getText()+"', rg = "+fldRg.getText()+", cpf = "+fldCpf.getText()+", centro = '"+ idCentros[cmbCentro.getSelectedIndex()]+"' WHERE matricula = "+fldMatricula.getText()+";";
+				
+				break;
+			case EXCLUSAO: break;
+
+			}
+
+			System.out.println(strAtualize);
+
+			cnx.atualize(strAtualize);
+			limparCampos();
+			ProfessorCadastro.this.setVisible(false);
+			pai.setVisible(true);
+			pai.buscar();
+			
 		}
-
 	}
 
 	class AcaoCancelar extends AbstractAction{
@@ -123,19 +151,94 @@ class ProfessorCadastro extends JFrame {
 			putValue(SHORT_DESCRIPTION, 
 					"Cancelar operação!");
 			putValue(SMALL_ICON, 
-					new ImageIcon(imagesPath+"general/Search24.gif"));
+					new ImageIcon(imagesPath+"general/Stop24.gif"));
 
 		}
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
 
+			limparCampos();
+			ProfessorCadastro.this.setVisible(false);
+			pai.setVisible(true);
 
 		}
 
 	}
 
+	public void incluir() {
+
+		acao = INCLUSAO;
+		setTitle("Inclusão de Professor");
+
+		fldMatricula.setEnabled(true);
+		fldNome.setEnabled(true);
+		fldRg.setEnabled(true);
+		fldCpf.setEnabled(true);
+		cmbCentro.setEnabled(true);
+
+		limparCampos();
+
+		pai.setVisible(false);
+		setVisible(true);
+
+	}
+	public void editar(int matricula) {
+		acao = EDICAO;
+		setTitle("Edição de Professor");
+
+		fldMatricula.setEnabled(false);
+		fldNome.setEnabled(true);
+		fldRg.setEnabled(true);
+		fldCpf.setEnabled(true);
+		cmbCentro.setEnabled(true);
+
+		carregarCampos(matricula);
+
+		pai.setVisible(false);
+		setVisible(true);
+
+	}
+
+	public void limparCampos() {
+
+		fldMatricula.setText("");
+		fldNome.setText("");
+		fldRg.setText("");
+		fldCpf.setText("");
+
+		cmbCentro.setSelectedIndex(0);
+
+	}
+	public void carregarCampos(int matricula) {
+		String strQuery = "SELECT matricula AS 'Matrícula', nome AS 'Nome', rg AS 'RG', cpf AS 'CPF',centro As 'Centro' FROM professores WHERE matricula = "+matricula+";";
+		rs = cnx.consulte(strQuery);
+		try {
+			if(rs.next()) {
+				fldMatricula.setText(rs.getString(1));
+				fldNome.setText(rs.getString(2));
+				fldRg.setText(rs.getString(3));
+				fldCpf.setText(rs.getString(4));
+
+				
+				
+				for(int i = 0; i < numeroDeCentros; i++) {
+					if(idCentros[i].equals(rs.getString(5))) {
+						cmbCentro.setSelectedIndex(i);
+						break;
+					}
+				}
+
+				
+			}else {
+				System.out.println("Nenhum registro encontrado");
+			}
+		}catch (SQLException sqle) {
+			System.out.printf("Erro # %d (%s)\n", 
+					sqle.getErrorCode(), 
+					sqle.getMessage());
+		}		
+
+	}
+
 }//Fim da classe ProfessorCadastro
-
-
-
