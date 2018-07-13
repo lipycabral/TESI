@@ -1,6 +1,11 @@
-package br.ufac.bsi.tesi;
+package br.ufac.academico.gui;
 
 import javax.swing.*; 					//importando classes do Swing
+
+import br.ufac.academico.db.*;
+import br.ufac.academico.entity.Centro;
+import br.ufac.academico.logic.*;
+
 import java.awt.*; 						//importando classes do AWT
 import java.awt.event.*; 				//importando classes de EVENTOS do AWT
 import java.sql.*;						//importando classes do JDBC
@@ -17,10 +22,12 @@ class ProfessorCadastro extends JFrame {
 	private ProfessorConsulta pai;
 	private Conexao cnx;
 	private ResultSet rs;
+	private CentroLogic cl;
+	private ProfessorLogic pl;
 
 	private JPanel pnlControles, pnlOperacoes, pnlRotulos, pnlCampos;
 	private JComboBox cmbCentro;
-	private JTextField fldMatricula, fldNome, fldRg, fldCpf;
+	private JTextField fldMatricula, fldNome, fldRg, fldCpf, fldEndereco, fldFone;
 	private JButton btnConfirmar, btnCancelar;
 
 	AcaoConfirmar actConfirmar = new AcaoConfirmar();
@@ -35,47 +42,35 @@ class ProfessorCadastro extends JFrame {
 
 		pai = (ProfessorConsulta)framePai;
 		cnx = conexao;
+		cl = new CentroLogic(cnx);
+		pl = new ProfessorLogic(cnx);
 
-		pnlRotulos = new JPanel(new GridLayout(5,1,5,5));
-		pnlRotulos.add(new JLabel("Matrícula"));
+		pnlRotulos = new JPanel(new GridLayout(7,1,5,5));
+		pnlRotulos.add(new JLabel("Matricula"));
 		pnlRotulos.add(new JLabel("Nome"));
-		pnlRotulos.add(new JLabel("RG"));		
+		pnlRotulos.add(new JLabel("RG"));
 		pnlRotulos.add(new JLabel("CPF"));
-		pnlRotulos.add(new JLabel("Centro"));		
+		pnlRotulos.add(new JLabel("Endereço"));
+		pnlRotulos.add(new JLabel("Fone"));
+		pnlRotulos.add(new JLabel("Centro"));
+		
 
 		fldMatricula = new JTextField();
-		fldNome = new JTextField();		
-		fldRg = new JTextField();		
+		fldNome = new JTextField();
+		fldRg = new JTextField();
 		fldCpf = new JTextField();
-
-		rs = cnx.consulte("SELECT sigla, nome FROM centros ORDER BY nome;");
-		String[] centros;
-		try{					
-			rs.last();
-			numeroDeCentros = rs.getRow();
-			idCentros =  new String[numeroDeCentros];
-			centros = new String[numeroDeCentros];
-			rs.beforeFirst();
-			int i=0;
-			while (rs.next()){
-				idCentros[i] = rs.getString(1);
-				centros[i] = rs.getString(2);
-				i++;
-			}
-		}catch(SQLException sqle){
-			centros = new String[] {};
-			System.out.printf("Erro: #%d [%s]\n", 
-					sqle.getErrorCode(), sqle.getMessage());
-		}
-
-		cmbCentro = new JComboBox(centros);
-
-		pnlCampos = new JPanel(new GridLayout(5,1,5,5));
+		fldEndereco = new JTextField();
+		fldFone = new JTextField();
+		cmbCentro = new JComboBox<>(cl.getCentros().toArray());
+		
+		pnlCampos = new JPanel(new GridLayout(7,1,5,5));
 		pnlCampos.add(fldMatricula);
 		pnlCampos.add(fldNome);
 		pnlCampos.add(fldRg);
 		pnlCampos.add(fldCpf);
-		pnlCampos.add(cmbCentro);;
+		pnlCampos.add(fldEndereco);
+		pnlCampos.add(fldFone);
+		pnlCampos.add(cmbCentro);
 
 		pnlControles = new JPanel(new BorderLayout(5,5));
 		pnlControles.add(pnlRotulos, BorderLayout.WEST);
@@ -109,40 +104,32 @@ class ProfessorCadastro extends JFrame {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			int matricula, rg, cpf;
+			String nome, endereco, fone, siglaCentro;
+			Centro centro;
+			
+			matricula = Integer.parseInt(fldMatricula.getText());
+			nome = fldNome.getText();
+			rg = Integer.parseInt(fldRg.getText());
+			cpf = Integer.parseInt(fldCpf.getText());
+			endereco = fldEndereco.getText();
+			fone = fldFone.getText();
+			
+			centro = (Centro)cmbCentro.getSelectedItem();
+			siglaCentro = centro.getSigla();
 
 			String strAtualize = "";
 
 			switch (acao) {
 			case INCLUSAO:
-				strAtualize = "INSERT INTO "
-						+ " professores (matricula, nome, rg, cpf, centro)"
-						+ " VALUES ("
-						+ fldMatricula.getText() + ", "
-						+ "'" + fldNome.getText() + "', "
-						+ fldRg.getText() + ", "
-						+ fldCpf.getText() + ", "
-						+ "'" + idCentros[cmbCentro.getSelectedIndex()] + "');";
+				pl.addProfessor(matricula, nome, rg, cpf, endereco, fone, siglaCentro);
 				break;
-			case EDICAO: 
-				strAtualize = "UPDATE professores "
-						+ " SET nome = '" + fldNome.getText() + "', "
-						+ "     rg = " + fldRg.getText() + ", "
-						+ "     cpf = " + fldCpf.getText() + ", "
-						+ "     centro = '" + idCentros[cmbCentro.getSelectedIndex()] + "' "
-						+ " WHERE matricula = " + fldMatricula.getText() + ";";
-				
-				
+			case EDICAO:
 				break;
 			case EXCLUSAO:
-				// INSTRUÇÃO MAIS SIMPLES DE TODAS
-				strAtualize = "DELETE FROM professores "
-						+ " WHERE matricula = " + fldMatricula.getText() + ";";
 				break;
 			}
 
-			System.out.println(strAtualize);
-
-			cnx.atualize(strAtualize);
 			limparCampos();
 			ProfessorCadastro.this.setVisible(false);
 			pai.setVisible(true);
@@ -168,8 +155,6 @@ class ProfessorCadastro extends JFrame {
 			limparCampos();
 			ProfessorCadastro.this.setVisible(false);
 			pai.setVisible(true);
-			// REFAZER A BUSCA PARA ATUALIZAR O ResultSet
-			// USADO PARA REDESENHAR A TABELA
 			pai.buscar();
 		}
 
@@ -184,6 +169,8 @@ class ProfessorCadastro extends JFrame {
 		fldNome.setEnabled(true);
 		fldRg.setEnabled(true);
 		fldCpf.setEnabled(true);
+		fldEndereco.setEnabled(true);
+		fldFone.setEnabled(true);
 		cmbCentro.setEnabled(true);
 
 		limparCampos();
@@ -193,18 +180,15 @@ class ProfessorCadastro extends JFrame {
 
 	}
 
-	public void editar(int matricula) {
+	public void editar(String sigla) {
 
 		acao = EDICAO;
-		setTitle("Edição de Professor");
+		setTitle("Edição de Centro");
 
 		fldMatricula.setEnabled(false);
 		fldNome.setEnabled(true);
-		fldRg.setEnabled(true);
-		fldCpf.setEnabled(true);
-		cmbCentro.setEnabled(true);
 
-		carregarCampos(matricula);
+		carregarCampos(sigla);
 
 		pai.setVisible(false);
 		setVisible(true);
@@ -212,19 +196,15 @@ class ProfessorCadastro extends JFrame {
 	}
 	
 	//PRATICAMENTE IGUAL AO editar
-	public void excluir(int matricula) {
+	public void excluir(String sigla) {
 
 		acao = EXCLUSAO;
-		setTitle("Exclusão de Professor");
+		setTitle("Exclusão de Centro");
 
-		// TODOS OS widgets DESABILITADOS
 		fldMatricula.setEnabled(false);
 		fldNome.setEnabled(false);
-		fldRg.setEnabled(false);
-		fldCpf.setEnabled(false);
-		cmbCentro.setEnabled(false);
 
-		carregarCampos(matricula);
+		carregarCampos(sigla);
 
 		pai.setVisible(false);
 		setVisible(true);
@@ -238,48 +218,20 @@ class ProfessorCadastro extends JFrame {
 		fldNome.setText("");
 		fldRg.setText("");
 		fldCpf.setText("");
-
+		fldEndereco.setText("");
+		fldFone.setText("");
 		cmbCentro.setSelectedIndex(0);
+		
 
 	}
 	
-	public void carregarCampos(int matricula) {
+	public void carregarCampos(String sigla) {
 
-		String strQuery = "SELECT matricula AS 'Matrícula', "
-				+ "nome AS 'Nome', "
-				+ "rg AS 'RG', "
-				+ "cpf AS 'CPF', "
-				+ "centro AS 'Centro' "
-				+ "FROM professores "
-				+ "WHERE matricula = " + matricula + ";";		
-
-		rs = cnx.consulte(strQuery);
+		Centro c = cl.getCentro(sigla);
 		
-		try {
-			if (rs.next()) {
-				
-				fldMatricula.setText(rs.getString(1));
-				fldNome.setText(rs.getString(2));
-				fldRg.setText(rs.getString(3));
-				fldCpf.setText(rs.getString(4));
-
-
-				for (int i=0; i < numeroDeCentros; i++) {
-					if( idCentros[i].equals(rs.getString(5))) {
-						cmbCentro.setSelectedIndex(i);
-						break;
-					}
-				}				
-			}else {
-				System.out.println("Nenhum registro encontrado!");
-			}
-		}catch (SQLException sqle) {
-			System.out.printf("Erro # %d (%s)\n", 
-					sqle.getErrorCode(), 
-					sqle.getMessage());
-		}		
-		
-
+		fldMatricula.setText(c.getSigla());
+		fldNome.setText(c.getNome());
+	
 	}
 	
 

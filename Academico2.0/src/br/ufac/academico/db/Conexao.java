@@ -14,7 +14,7 @@ public class Conexao {
 		}else{
 			try {
 				con = DriverManager.getConnection(urlBanco, userName, userPasswd);
-				smt = con.createStatement();
+				
 				System.out.println("Conexão efetuada com sucesso!");
 				conectado = true;
 			} catch (SQLException sqle) {
@@ -51,6 +51,7 @@ public class Conexao {
 			return null;
 		}else {
 			try {
+				smt = con.createStatement();
 				return smt.executeQuery(sqlQuery);
 			} catch (SQLException sqle) {
 				System.out.printf("Erro # %d (%s)\n", 
@@ -67,6 +68,7 @@ public class Conexao {
 			System.out.println("Não está conectado!");
 		}else {
 			try {
+				smt = con.createStatement();
 				return smt.executeUpdate(sqlUpdate);
 			} catch (SQLException sqle) {
 				System.out.printf("Erro # %d (%s)\n", 

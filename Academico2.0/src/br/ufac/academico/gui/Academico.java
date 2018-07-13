@@ -4,16 +4,16 @@ import javax.swing.*; 					//importando classes do Swing
 
 import br.ufac.academico.db.Conexao;
 
+import java.awt.*; 						//importando classes do AWT
 import java.awt.event.*; 				//importando classes de EVENTOS do AWT
+import java.sql.*;						//importando classes do JDBC
 
 class Academico extends JFrame {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-
 	private Conexao cnx = null;
+	
+	CentroConsulta centroConsulta;
+	ProfessorConsulta professorConsulta;
 
 	AcaoCentro actCentro = new AcaoCentro();	
 	AcaoProfessor actProfessor = new AcaoProfessor();	
@@ -30,6 +30,9 @@ class Academico extends JFrame {
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
 		cnx = conexao;
+		
+		centroConsulta = new CentroConsulta(this, cnx);
+		professorConsulta = new ProfessorConsulta(this, cnx);		
 
 		mbOpcoes = new JMenuBar();
 		
@@ -49,11 +52,6 @@ class Academico extends JFrame {
 
 	class AcaoCentro extends AbstractAction{
 
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-
 		AcaoCentro(){
 			super("Centro");
 			putValue(MNEMONIC_KEY, KeyEvent.VK_C);
@@ -65,15 +63,13 @@ class Academico extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 
+			centroConsulta.setVisible(true);
+			Academico.this.setVisible(false);
+			
 		}
 	}
 	
 	class AcaoProfessor extends AbstractAction{
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
 
 		AcaoProfessor(){
 			super("Professor");
@@ -86,15 +82,13 @@ class Academico extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 
+			professorConsulta.setVisible(true);
+			Academico.this.setVisible(false);
+			
 		}
 	}
 	
 	class AcaoSair extends AbstractAction{
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
 
 		AcaoSair(){
 			super("Sair");

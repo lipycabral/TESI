@@ -1,15 +1,24 @@
-package br.ufac.bsi.tesi;
+package br.ufac.academico.gui;
 
 import javax.swing.*; 					//importando classes do Swing
+
+import br.ufac.academico.db.*;
+import br.ufac.academico.entity.Centro;
+import br.ufac.academico.logic.*;
+
 import java.awt.*; 						//importando classes do AWT
 import java.awt.event.*; 				//importando classes de EVENTOS do AWT
 import java.sql.*;						//importando classes do JDBC
+import java.util.List;						//importando classes do JDBC
+import java.util.ArrayList;						//importando classes do JDBC
 
-class ProfessorConsulta extends JFrame {
+class CentroConsulta extends JFrame {
 
 	private Conexao cnx = null;
+	Academico pai;
+	CentroLogic cl;
 
-	ProfessorCadastro professorCadastro;
+	CentroCadastro centroCadastro;
 
 	JTable tblQuery;
 	JPanel pnlSuperior, pnlControles, pnlBotoes, pnlOperacoes, pnlRotulos, pnlChaves;
@@ -25,14 +34,16 @@ class ProfessorConsulta extends JFrame {
 
 	static final String imagesPath = new String("images/");	
 
-	ProfessorConsulta(Conexao conexao){ // método construtor
-		super("Consulta de Professor"); // chamando construtor da classe mãe
+	CentroConsulta(JFrame framePai, Conexao conexao){ // método construtor
+		super("Consulta de Centro"); // chamando construtor da classe mãe
 		setSize(800, 400);				// definindo dimensões da janela
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
+		pai = (Academico) framePai;		
 		cnx = conexao;
+		cl = new CentroLogic(cnx);
 
-		professorCadastro = new ProfessorCadastro(this, cnx);
+		centroCadastro = new CentroCadastro(this, cnx);
 
 		tblQuery = new JTable(0,0);
 		tblQuery.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -42,7 +53,7 @@ class ProfessorConsulta extends JFrame {
 		pnlRotulos.add(new JLabel("Buscar por"));
 		pnlRotulos.add(new JLabel("Valor"));
 
-		cmbChaves = new JComboBox(new String[] {"Matrícula", "Nome"});
+		cmbChaves = new JComboBox(new String[] {"Sigla", "Nome"});
 		fldValor = new JTextField();
 
 		pnlChaves = new JPanel(new GridLayout(2,1,5,5));
@@ -86,7 +97,7 @@ class ProfessorConsulta extends JFrame {
 			super("Buscar");
 			putValue(MNEMONIC_KEY, KeyEvent.VK_B);
 			putValue(SHORT_DESCRIPTION, 
-					"Buscar registro de professor!");
+					"Buscar registros de Centros!");
 			putValue(SMALL_ICON, 
 					new ImageIcon(imagesPath+"general/Search24.gif"));
 
@@ -107,7 +118,7 @@ class ProfessorConsulta extends JFrame {
 			super("Incluir");
 			putValue(MNEMONIC_KEY, KeyEvent.VK_I);
 			putValue(SHORT_DESCRIPTION, 
-					"Incluir registro de professor!");
+					"Incluir registro de Centro!");
 			putValue(SMALL_ICON, 
 					new ImageIcon(imagesPath+"general/New24.gif"));
 
@@ -116,7 +127,7 @@ class ProfessorConsulta extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 
-			professorCadastro.incluir();
+			centroCadastro.incluir();
 
 		}
 
@@ -128,7 +139,7 @@ class ProfessorConsulta extends JFrame {
 			super("Editar");
 			putValue(MNEMONIC_KEY, KeyEvent.VK_E);
 			putValue(SHORT_DESCRIPTION, 
-					"Editar registro de professor!");
+					"Editar registro de Centro!");
 			putValue(SMALL_ICON, 
 					new ImageIcon(imagesPath+"general/Edit24.gif"));
 
@@ -137,11 +148,9 @@ class ProfessorConsulta extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 
-			int matricula;
-			
-			matricula = (int) tblQuery.getValueAt(tblQuery.getSelectedRow(), 0);
-			
-			professorCadastro.editar(matricula);
+			String sigla;
+			sigla = (String) tblQuery.getValueAt(tblQuery.getSelectedRow(), 0);
+			centroCadastro.editar(sigla);
 
 		}
 
@@ -153,7 +162,7 @@ class ProfessorConsulta extends JFrame {
 			super("Excluir");
 			putValue(MNEMONIC_KEY, KeyEvent.VK_X);
 			putValue(SHORT_DESCRIPTION, 
-					"Excluir registro de professor!");
+					"Excluir registro de Centro!");
 			putValue(SMALL_ICON, 
 					new ImageIcon(imagesPath+"general/Delete24.gif"));
 
@@ -163,13 +172,9 @@ class ProfessorConsulta extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 
-			int matricula;
-			
-			matricula = (int) tblQuery.getValueAt(tblQuery.getSelectedRow(), 0);
-			
-			//ÚNICA MUDANÇA
-			professorCadastro.excluir(matricula);
-			
+			String sigla;
+			sigla = (String) tblQuery.getValueAt(tblQuery.getSelectedRow(), 0);
+			centroCadastro.excluir(sigla);
 
 		}
 
@@ -181,7 +186,7 @@ class ProfessorConsulta extends JFrame {
 			super("Sair");
 			putValue(MNEMONIC_KEY, KeyEvent.VK_R);
 			putValue(SHORT_DESCRIPTION, 
-					"Sair da aplicação!");
+					"Fecha consulta de professores!");
 			putValue(SMALL_ICON, 
 					new ImageIcon(imagesPath+"general/Stop24.gif"));
 
@@ -190,8 +195,8 @@ class ProfessorConsulta extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 
-			cnx.desconecte();
-			System.exit(0);
+			CentroConsulta.this.setVisible(false);
+			pai.setVisible(true);
 
 		}
 
@@ -199,34 +204,23 @@ class ProfessorConsulta extends JFrame {
 
 	public void buscar() {
 
-		String strQuery = "SELECT matricula AS 'Matrícula', "
-				+ "nome AS 'Nome', "
-				+ "rg AS 'RG', "
-				+ "cpf AS 'CPF', "
-				+ "centro AS 'Centro' "
-				+ "FROM professores ";
-
-		if(!fldValor.getText().equals("")) {
-
+		List<Centro> centros = new ArrayList<Centro>();
+		
+		if(fldValor.getText().equals("")) {
+			centros = cl.getCentros();
+		}else{
 			switch (cmbChaves.getSelectedIndex()) {
 			case 0:
-				strQuery = strQuery 
-				+ "WHERE matricula = " 
-				+ fldValor.getText() + ";";
+				centros.add(cl.getCentro(fldValor.getText()));
 				break;
 			case 1:
-				strQuery = strQuery 
-				+ "WHERE nome LIKE '%" 
-				+ fldValor.getText() + "%';";			
+				centros = cl.getCentrosPorNome(fldValor.getText());
 				break;
 			}
 
 		}
 
-		// SÓ PRA VERmelhor....
-		System.out.println(strQuery);
-		
-		tblQuery.setModel(new SQLTableModel(cnx.consulte(strQuery)));
+		tblQuery.setModel(new CentroTableModel(centros));
 		btnEditar.setEnabled(false);
 		btnExcluir.setEnabled(false);
 

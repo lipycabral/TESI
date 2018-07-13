@@ -1,13 +1,15 @@
 package br.ufac.academico.entity;
 
 public class Centro {
+
 	private String sigla;
 	private String nome;
-
-	public Centro(String sigla, String nome){
+	
+	public Centro(String sigla, String nome) {
 		this.sigla = sigla;
 		this.nome = nome;
 	}
+
 	public String getSigla() {
 		return sigla;
 	}
@@ -23,4 +25,11 @@ public class Centro {
 	public void setNome(String nome) {
 		this.nome = nome;
 	}
+	
+	public String toString() {
+		return nome;
+	}
+	
+	
+	
 }
