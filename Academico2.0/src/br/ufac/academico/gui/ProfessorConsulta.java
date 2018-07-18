@@ -149,9 +149,9 @@ class ProfessorConsulta extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 
-//			String sigla;
-//			sigla = (String) tblQuery.getValueAt(tblQuery.getSelectedRow(), 0);
-//			centroCadastro.editar(sigla);
+			int matricula;
+			matricula = Integer.parseInt((String.valueOf(tblQuery.getValueAt(tblQuery.getSelectedRow(), 0)))) ;
+			professorCadastro.editar(matricula);
 
 		}
 
@@ -173,9 +173,9 @@ class ProfessorConsulta extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 
-//			String sigla;
-//			sigla = (String) tblQuery.getValueAt(tblQuery.getSelectedRow(), 0);
-//			centroCadastro.excluir(sigla);
+			int matricula;
+			matricula = Integer.parseInt((String.valueOf(tblQuery.getValueAt(tblQuery.getSelectedRow(), 0)))) ;
+			professorCadastro.excluir(matricula);
 
 		}
 

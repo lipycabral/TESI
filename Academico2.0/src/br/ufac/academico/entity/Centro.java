@@ -27,9 +27,7 @@ public class Centro {
 	}
 	
 	public String toString() {
-		return nome;
+		return nome; 
 	}
-	
-	
 	
 }

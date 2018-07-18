@@ -4,6 +4,7 @@ import javax.swing.*; 					//importando classes do Swing
 
 import br.ufac.academico.db.*;
 import br.ufac.academico.entity.Centro;
+import br.ufac.academico.entity.Professor;
 import br.ufac.academico.logic.*;
 
 import java.awt.*; 						//importando classes do AWT
@@ -27,7 +28,8 @@ class ProfessorCadastro extends JFrame {
 
 	private JPanel pnlControles, pnlOperacoes, pnlRotulos, pnlCampos;
 	private JComboBox cmbCentro;
-	private JTextField fldMatricula, fldNome, fldRg, fldCpf, fldEndereco, fldFone;
+	private JTextField fldMatricula, fldNome, fldRg, fldCpf, 
+		fldEndereco, fldFone;
 	private JButton btnConfirmar, btnCancelar;
 
 	AcaoConfirmar actConfirmar = new AcaoConfirmar();
@@ -46,23 +48,23 @@ class ProfessorCadastro extends JFrame {
 		pl = new ProfessorLogic(cnx);
 
 		pnlRotulos = new JPanel(new GridLayout(7,1,5,5));
-		pnlRotulos.add(new JLabel("Matricula"));
+		pnlRotulos.add(new JLabel("Matrícula"));
 		pnlRotulos.add(new JLabel("Nome"));
 		pnlRotulos.add(new JLabel("RG"));
 		pnlRotulos.add(new JLabel("CPF"));
 		pnlRotulos.add(new JLabel("Endereço"));
 		pnlRotulos.add(new JLabel("Fone"));
 		pnlRotulos.add(new JLabel("Centro"));
-		
 
 		fldMatricula = new JTextField();
-		fldNome = new JTextField();
+		fldNome = new JTextField();		
 		fldRg = new JTextField();
 		fldCpf = new JTextField();
 		fldEndereco = new JTextField();
 		fldFone = new JTextField();
-		cmbCentro = new JComboBox<>(cl.getCentros().toArray());
 		
+		cmbCentro = new JComboBox<>(cl.getCentros().toArray());
+
 		pnlCampos = new JPanel(new GridLayout(7,1,5,5));
 		pnlCampos.add(fldMatricula);
 		pnlCampos.add(fldNome);
@@ -104,6 +106,8 @@ class ProfessorCadastro extends JFrame {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
+
+			String strAtualize = "";
 			int matricula, rg, cpf;
 			String nome, endereco, fone, siglaCentro;
 			Centro centro;
@@ -118,15 +122,16 @@ class ProfessorCadastro extends JFrame {
 			centro = (Centro)cmbCentro.getSelectedItem();
 			siglaCentro = centro.getSigla();
 
-			String strAtualize = "";
-
 			switch (acao) {
 			case INCLUSAO:
-				pl.addProfessor(matricula, nome, rg, cpf, endereco, fone, siglaCentro);
+				pl.addProfessor(matricula, nome, rg, cpf, 
+						endereco, fone, siglaCentro);
 				break;
 			case EDICAO:
+				pl.updProfessor(matricula, nome, rg, cpf, endereco, fone, siglaCentro);
 				break;
 			case EXCLUSAO:
+				pl.delProfessor(matricula, nome, rg, cpf, endereco, fone, siglaCentro);
 				break;
 			}
 
@@ -180,15 +185,20 @@ class ProfessorCadastro extends JFrame {
 
 	}
 
-	public void editar(String sigla) {
+	public void editar(int matricula) {
 
 		acao = EDICAO;
 		setTitle("Edição de Centro");
 
 		fldMatricula.setEnabled(false);
 		fldNome.setEnabled(true);
+		fldRg.setEnabled(true);
+		fldCpf.setEnabled(true);
+		fldEndereco.setEnabled(true);
+		fldFone.setEnabled(true);
+		cmbCentro.setEnabled(true);
 
-		carregarCampos(sigla);
+		carregarCampos(matricula);
 
 		pai.setVisible(false);
 		setVisible(true);
@@ -196,21 +206,25 @@ class ProfessorCadastro extends JFrame {
 	}
 	
 	//PRATICAMENTE IGUAL AO editar
-	public void excluir(String sigla) {
+	public void excluir(int matricula) {
 
 		acao = EXCLUSAO;
 		setTitle("Exclusão de Centro");
 
 		fldMatricula.setEnabled(false);
 		fldNome.setEnabled(false);
+		fldRg.setEnabled(false);
+		fldCpf.setEnabled(false);
+		fldEndereco.setEnabled(false);
+		fldFone.setEnabled(false);
+		cmbCentro.setEnabled(false);
 
-		carregarCampos(sigla);
+		carregarCampos(matricula);
 
 		pai.setVisible(false);
 		setVisible(true);
 
 	}	
-	
 	
 	public void limparCampos() {
 
@@ -221,16 +235,20 @@ class ProfessorCadastro extends JFrame {
 		fldEndereco.setText("");
 		fldFone.setText("");
 		cmbCentro.setSelectedIndex(0);
-		
 
 	}
 	
-	public void carregarCampos(String sigla) {
+	public void carregarCampos(int matricula) {
 
-		Centro c = cl.getCentro(sigla);
+		Professor p = pl.getProfessor(matricula);
 		
-		fldMatricula.setText(c.getSigla());
-		fldNome.setText(c.getNome());
+		fldMatricula.setText(String.valueOf(p.getMatricula()));
+		fldNome.setText(p.getNome());
+		fldRg.setText(String.valueOf(p.getRg()));
+		fldCpf.setText(String.valueOf(p.getCpf()));
+		fldEndereco.setText(p.getEndereco());
+		fldFone.setText(p.getFone());
+		cmbCentro.setSelectedItem(p.getCentro().getNome());
 	
 	}
 	

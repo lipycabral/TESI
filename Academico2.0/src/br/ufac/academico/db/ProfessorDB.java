@@ -96,30 +96,28 @@ public class ProfessorDB {
 
 		Professor professor;
 		Centro centro;
+
 		rs = cnx.consulte(strBusca);
 		try{
-			if(rs.next()) {
-				rs.beforeFirst();
-				while(rs.next()){
-					System.out.println("1.3");
-					centro = cdb.getCentro(rs.getString(7));				
-					System.out.println("1.4");
-					professor = new Professor(rs.getInt(1), 
-							rs.getString(2),
-							rs.getInt(3),
-							rs.getInt(4),
-							rs.getString(5),
-							rs.getString(6),
-							centro);
-					System.out.println("2");
-					listaDeProfessores.add(professor);
-				}
+			while(rs.next()){
+
+				centro = cdb.getCentro(rs.getString(7));				
+
+				professor = new Professor(rs.getInt(1), 
+						rs.getString(2),
+						rs.getInt(3),
+						rs.getInt(4),
+						rs.getString(5),
+						rs.getString(6),
+						centro);
+
+				listaDeProfessores.add(professor);
 			}
+
 		}catch(SQLException sqle){
 			System.out.printf("Erro # %d (%s)\n", 
 					sqle.getErrorCode(), 
 					sqle.getMessage());
-			System.out.println("3");
 		}
 		return listaDeProfessores;
 	}
